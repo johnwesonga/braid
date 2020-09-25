@@ -6,7 +6,7 @@
                  [javax.servlet/servlet-api "2.5"]
                  [commons-codec "1.10"]
                  [commons-validator "1.5.1"]
-                 [http-kit "2.3.0"]
+                 [http-kit "2.4.0-beta1"]
                  [ring/ring-core "1.7.1"]
                  [ring/ring-defaults "0.3.2" :exclusions [ring/ring-core]]
                  [fogus/ring-edn "0.3.0"]
@@ -80,7 +80,8 @@
                 :source-paths ["src/braid"
                                "src/retouch"]
                 :compiler {:main braid.core.client.desktop.core
-                           :preloads [day8.re-frame-10x.preload]
+                           ;; uncomment to enable re-frame-10x (event debugger)
+                           ;; :preloads [day8.re-frame-10x.preload]
                            :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true}
                            :asset-path "/js/dev/desktop/"
                            :output-to "resources/public/js/dev/desktop.js"
@@ -139,31 +140,45 @@
 
   :min-lein-version "2.5.0"
 
-  :profiles {:dev {:source-paths ["src" "dev-src"]
-                   :global-vars {*assert* true}
-                   :repl-options {:timeout 120000
-                                  :init-ns braid.dev.core}
-                   :dependencies [[com.datomic/datomic-free "0.9.5201"
-                                   :exclusions [joda-time
-                                                com.google.guava/guava
-                                                org.slf4j/slf4j-api]]
-                                  [figwheel-sidecar "0.5.18"
-                                   :exclusions
-                                   [org.clojure/google-closure-library-third-party
-                                    com.google.javascript/closure-compiler]]
-                                  [com.bhauman/rebel-readline "0.1.2"]
-                                  [day8.re-frame/re-frame-10x "0.3.3"]]}
-             :prod {:global-vars {*assert* false}
-                    :dependencies [[com.datomic/datomic-pro "0.9.5201"
-                                    :exclusions [joda-time
-                                                 com.google.guava/guava]]
-                                   [org.postgresql/postgresql "9.3-1103-jdbc4"]]}
-             :cider [:dev {:dependencies [[cider/piggieback "0.3.10"]]
-                           :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
-                           :plugins [[cider/cider-nrepl "0.20.0"]
-                                     [refactor-nrepl "2.4.0"]
-                                    ]}]
-             :test [:dev]
-             :uberjar [:prod
-                       {:aot [braid.core]
-                        :prep-tasks ["compile" ["cljsbuild" "once" "release"]]}]})
+  :profiles {:datomic-free
+             {:dependencies [[com.datomic/datomic-free "0.9.5697"
+                              :exclusions [joda-time
+                                           com.google.guava/guava
+                                           org.slf4j/slf4j-api]]]}
+             :datomic-pro
+             {:dependencies [[com.datomic/datomic-pro "0.9.5201"
+                              :exclusions [joda-time
+                                           com.google.guava/guava]]
+                             [org.postgresql/postgresql "9.3-1103-jdbc4"]]}
+
+             :dev
+             [:datomic-free
+              {:source-paths ["src" "dev-src"]
+               :global-vars {*assert* true}
+               :repl-options {:timeout 120000
+                              :init-ns braid.dev.core}
+               :dependencies [[figwheel-sidecar "0.5.18"
+                               :exclusions
+                               [org.clojure/google-closure-library-third-party
+                                com.google.javascript/closure-compiler]]
+                              [com.bhauman/rebel-readline "0.1.2"]
+                              [day8.re-frame/re-frame-10x "0.3.3"]]}]
+
+             :prod
+             [:datomic-free
+              {:global-vars {*assert* false}}]
+
+             :cider
+             [:dev
+              {:dependencies [[cider/piggieback "0.3.10"]]
+               :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+               :plugins [[cider/cider-nrepl "0.20.0"]
+                         [refactor-nrepl "2.4.0"]]}]
+
+             :test
+             [:dev]
+
+             :uberjar
+             [:prod
+              {:aot [braid.core]
+               :prep-tasks ["compile" ["cljsbuild" "once" "release"]]}]})

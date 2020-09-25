@@ -25,7 +25,8 @@
 
        [:div.info
         [:div.local-time (helpers/smart-format-date (js/Date.))]
-        #_[:div.since "member since"]
+        [:div.since
+         "member since " (helpers/smart-format-date (user :joined-at))]
         [:div.description
          #_"If I had a profile, it would be here"]]
 
@@ -36,8 +37,8 @@
             {:on-click
               (fn [_]
                 (dispatch [:new-conversation
-                            { :group-id @open-group-id
-                              :mentioned-user-ids [user-id]}]))}
+                           {:group-id @open-group-id
+                            :mentioned-user-ids [user-id]}]))}
             "PM"]
         #_[:a.mute "Mute"]
 
@@ -47,9 +48,10 @@
           [:button.ban
            {:on-click
             (fn [_]
-              (dispatch [:remove-from-group
-                         {:group-id @open-group-id
-                          :user-id user-id}]))}
+              (when (js/confirm (str "Really remove " (user :nickname) " from this group?"))
+                (dispatch [:remove-from-group
+                           {:group-id @open-group-id
+                            :user-id user-id}])))}
            "Kick"])
 
         (when (and @viewer-admin? (not @admin?))
